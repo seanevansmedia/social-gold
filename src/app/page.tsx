@@ -1,65 +1,111 @@
-import Image from "next/image";
+"use client";
+
+import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import Link from "next/link";
 
 export default function Home() {
+  const { user, logout, loading: authLoading } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchUserData() {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUserData(docSnap.data());
+        }
+      }
+    }
+    fetchUserData();
+  }, [user]);
+
+  if (authLoading) return null;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12 text-center bg-background">
+      <div className="max-w-3xl w-full">
+        <h1 className="mb-4 text-6xl md:text-8xl font-black tracking-tight leading-none font-lexend">
+          <span 
+            style={{ 
+              background: "linear-gradient(to right, var(--gradient-from), var(--gradient-to))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent"
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            Social
+          </span>
+          <br />
+          <span className="text-foreground">Gold</span>
+        </h1>
+        
+        {user ? (
+          <div className="mt-8 space-y-6 flex flex-col items-center">
+            {userData ? (
+              <div className="space-y-4 animate-in fade-in duration-700">
+                {userData.photoURL && (
+                   <img 
+                    src={userData.photoURL} 
+                    className="h-20 w-20 rounded-full border-2 border-primary mx-auto object-cover" 
+                    alt="Profile"
+                   />
+                )}
+                <div>
+                  <p className="text-2xl font-bold text-primary">@{userData.username}</p>
+                  <p className="text-sm opacity-60 max-w-xs mx-auto">{userData.bio}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-lg font-medium opacity-80">Welcome, {user.email}</p>
+            )}
+            
+            <div className="flex flex-col items-center gap-4 w-full">
+              {!userData?.setupComplete && (
+                <Link
+                  href="/profile-setup"
+                  className="w-full md:w-64 rounded-2xl bg-primary/10 border border-primary/30 py-3 text-sm font-bold text-primary hover:bg-primary/20 transition-all"
+                >
+                  Complete Profile Setup
+                </Link>
+              )}
+
+              <Link
+                href="/feed"
+                style={{ background: "linear-gradient(to right, var(--gradient-from), var(--gradient-to))" }}
+                className="w-full md:w-64 rounded-2xl px-12 py-4 text-base font-bold text-primary-foreground shadow-xl transition-all hover:scale-105 active:scale-95"
+              >
+                Go to Feed
+              </Link>
+              
+              <button
+                onClick={() => logout()}
+                className="text-xs font-bold text-primary uppercase tracking-widest hover:opacity-70 transition-all p-2"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row justify-center gap-5 px-4 w-full md:w-auto mt-10 font-bold">
+            <Link
+              href="/login"
+              style={{ background: "linear-gradient(to right, var(--gradient-from), var(--gradient-to))" }}
+              className="w-full md:w-auto rounded-2xl px-12 py-4 text-primary-foreground shadow-xl text-center"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/signup"
+              className="w-full md:w-auto rounded-2xl border-2 border-primary px-12 py-4 text-primary text-center hover:bg-primary/10 transition-all"
+            >
+              Join Now
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
