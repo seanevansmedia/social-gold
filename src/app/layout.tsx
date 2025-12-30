@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lexend, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import Footer from "@/components/Footer"; // Import Footer
 
 const lexend = Lexend({ 
   subsets: ["latin"],
@@ -25,9 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${lexend.variable} ${jakarta.variable}`}>
-      <body className="font-jakarta antialiased">
+      <body className="font-jakarta antialiased min-h-screen flex flex-col">
         <AuthProvider>
-          {children}
+          <div className="flex-grow">
+            {children}
+          </div>
+          <Footer />
         </AuthProvider>
       </body>
     </html>
