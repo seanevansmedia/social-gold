@@ -37,12 +37,12 @@ export default function SearchPage() {
     finally { setIsSearching(false); }
   };
 
-  if (authLoading) return <div className="min-h-screen bg-background" />;
+  if (authLoading) return null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-jakarta pb-20">
-      <nav className="sticky top-0 z-40 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-2xl items-center gap-4 px-6 py-6">
+    <div className="text-foreground font-jakarta">
+      <nav className="sticky top-0 z-40 w-full border-b border-white/10 bg-background/60 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-2xl items-center gap-4 px-6 py-4">
           <Link href="/feed" className="text-primary text-3xl p-2 hover:scale-110 transition-transform">←</Link>
           <div className="flex-1 relative">
             <input 
@@ -50,7 +50,7 @@ export default function SearchPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search members..."
-              className="w-full bg-secondary border-2 border-white/5 rounded-2xl px-6 py-4 text-lg focus:outline-none focus:border-primary transition-all font-medium placeholder:opacity-20 shadow-inner"
+              className="w-full bg-secondary/40 border-2 border-primary/20 rounded-2xl px-6 py-3 text-lg focus:border-primary focus:ring-0 transition-all font-medium placeholder:text-foreground/40 shadow-inner text-foreground"
               autoFocus
             />
           </div>
@@ -58,18 +58,38 @@ export default function SearchPage() {
         </div>
       </nav>
 
-      <main className="mx-auto max-w-2xl px-4 pt-10">
-        <div className="space-y-6">
+      <main className="mx-auto max-w-2xl px-4 py-8">
+        <div className="space-y-4">
           {results.map((profile) => (
-            <Link key={profile.id} href={`/profile/${profile.username}`} className="flex items-center gap-6 p-6 rounded-[2.5rem] bg-secondary hover:bg-secondary/80 border border-white/5 transition-all group active:scale-95 shadow-xl">
-              <img src={profile.photoURL || "/default-avatar.png"} className="h-20 w-20 rounded-full border-2 border-primary/20 object-cover shadow-lg" alt="" />
+            <Link 
+              key={profile.id} 
+              href={`/profile/${profile.username}`} 
+              className="flex items-center gap-6 p-5 rounded-[2.5rem] bg-secondary/40 backdrop-blur-md border border-white/10 hover:border-primary/50 transition-all group active:scale-95 shadow-xl"
+            >
+              <img src={profile.photoURL || "/default-avatar.png"} className="h-16 w-16 rounded-full border-2 border-primary object-cover shadow-lg" alt="" />
               <div className="flex-1">
-                <p className="text-2xl font-bold text-primary font-lexend leading-none uppercase tracking-tight">{profile.displayName}</p>
-                <p className="text-xs font-bold opacity-30 uppercase tracking-[0.3em] mt-2">@{profile.username}</p>
+                <p className="text-xl font-bold text-primary font-lexend leading-none uppercase tracking-tight">{profile.displayName}</p>
+                <p className="text-[10px] font-bold text-foreground/60 uppercase tracking-[0.3em] mt-2">@{profile.username}</p>
               </div>
-              <span className="text-primary opacity-0 group-hover:opacity-100 transition-all text-3xl mr-4">→</span>
+              <span className="text-primary transition-all text-2xl mr-2 group-hover:translate-x-2">→</span>
             </Link>
           ))}
+
+          {searchTerm.length >= 2 && results.length === 0 && !isSearching && (
+            <div className="text-center py-20 animate-in fade-in duration-500">
+              <p className="text-4xl mb-4">📭</p>
+              <p className="font-lexend text-sm uppercase tracking-[0.4em] text-primary font-black">No gold found</p>
+            </div>
+          )}
+
+          {searchTerm.length < 2 && (
+            <div className="text-center py-20 animate-in fade-in duration-500">
+              <p className="text-6xl mb-6">🔍</p>
+              <p className="text-sm font-black uppercase tracking-[0.6em] max-w-xs mx-auto text-primary">
+                Search the vault
+              </p>
+            </div>
+          )}
         </div>
       </main>
     </div>
