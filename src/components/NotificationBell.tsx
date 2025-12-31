@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, orderBy, onSnapshot, limit, updateDoc, doc, writeBatch } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, limit, doc, writeBatch } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 
@@ -11,8 +11,6 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  
-  // Create a ref for the entire component container
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,27 +27,23 @@ export default function NotificationBell() {
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.read).length);
     }, (error) => {
+      // Silently catch permission errors during logout
       if (error.code !== "permission-denied") console.error(error);
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  // Logic to handle clicks outside the box
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
-
-    // Bind the event listener
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-    
     return () => {
-      // Unbind the event listener on clean up
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
@@ -83,11 +77,10 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-4 w-80 max-h-[450px] overflow-y-auto bg-secondary border border-white/20 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] animate-in zoom-in duration-200">
+        <div className="absolute right-0 mt-4 w-80 max-h-[450px] overflow-y-auto bg-secondary border border-white/20 rounded-[2rem] shadow-2xl z-[100] animate-in zoom-in duration-200">
           <div className="p-6 border-b border-white/10">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Notifications</h3>
           </div>
-          
           <div className="divide-y divide-white/10">
             {notifications.length === 0 ? (
               <div className="p-10 text-center text-primary font-bold text-xs uppercase tracking-widest">No activity yet</div>
@@ -105,7 +98,7 @@ export default function NotificationBell() {
                     {n.type === "comment" && " replied to your post"}
                     {n.type === "follow" && " started following you"}
                   </p>
-                  <p className="text-[10px] text-foreground/50 mt-1 uppercase font-bold tracking-wider">
+                  <p className="text-[10px] text-foreground/50 mt-1 uppercase font-bold">
                     {n.createdAt?.toDate ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(n.createdAt.toDate()) : "Just now"}
                   </p>
                 </Link>

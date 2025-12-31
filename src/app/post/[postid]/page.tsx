@@ -21,7 +21,7 @@ import {
 } from "firebase/firestore";
 import Link from "next/link";
 import { createNotification } from "@/lib/notificationUtils";
-import NotificationBell from "@/components/NotificationBell";
+import Navbar from "@/components/Navbar";
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -98,7 +98,14 @@ export default function PostDetailPage() {
     try {
       const postRef = doc(db, "posts", postid);
       const commentsRef = collection(db, "posts", postid, "comments");
-      await addDoc(commentsRef, { content: newComment, uid: user?.uid, username: userData.username, displayName: userData.displayName, photoURL: userData.photoURL || "", createdAt: serverTimestamp() });
+      await addDoc(commentsRef, { 
+        content: newComment, 
+        uid: user?.uid, 
+        username: userData.username, 
+        displayName: userData.displayName, 
+        photoURL: userData.photoURL || "", 
+        createdAt: serverTimestamp() 
+      });
       await updateDoc(postRef, { commentCount: increment(1) });
       await createNotification(post.uid, { uid: user?.uid!, username: userData.username, displayName: userData.displayName }, "comment", postid);
       setNewComment("");
@@ -118,15 +125,15 @@ export default function PostDetailPage() {
   };
 
   if (loading || authLoading) return <div className="min-h-screen bg-transparent" />;
-  if (!post) return <div className="min-h-screen bg-transparent p-20 text-center opacity-50 font-lexend uppercase tracking-widest text-foreground">Post not found</div>;
+  if (!post) return <div className="min-h-screen bg-transparent p-20 text-center font-lexend uppercase tracking-widest text-foreground">Post not found</div>;
 
   return (
     <div className="min-h-screen bg-transparent text-foreground font-jakarta pb-20">
       {alert.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm animate-in fade-in duration-300 text-foreground">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-[2.5rem] bg-secondary p-8 shadow-2xl border border-white/10 text-center animate-in zoom-in duration-300">
-            <h2 className="text-2xl font-bold font-lexend text-primary mb-2 uppercase tracking-tight">{alert.title}</h2>
-            <p className="text-sm opacity-60 mb-8 leading-relaxed font-medium">{alert.message}</p>
+            <h2 className="text-2xl font-bold font-lexend text-primary mb-2 uppercase">{alert.title}</h2>
+            <p className="text-sm opacity-60 mb-8">{alert.message}</p>
             <div className="flex flex-col gap-3">
               {alert.onConfirm ? (
                 <><button onClick={() => { alert.onConfirm?.(); closeAlert(); }} style={{ background: "linear-gradient(to right, var(--gradient-from), var(--gradient-to))" }} className="w-full rounded-2xl py-4 font-black text-primary-foreground shadow-lg hover:brightness-110 active:scale-95 transition-all uppercase tracking-widest text-xs">Confirm</button><button onClick={closeAlert} className="w-full rounded-2xl py-4 font-bold opacity-40 hover:opacity-100 hover:bg-white/5 transition-all uppercase tracking-widest text-xs">Cancel</button></>
@@ -138,26 +145,17 @@ export default function PostDetailPage() {
         </div>
       )}
 
-      <nav className="sticky top-0 z-40 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-6">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="text-primary text-3xl p-2 hover:scale-110 transition-transform">←</button>
-            <h1 className="text-xl font-black font-lexend uppercase tracking-tighter text-foreground">Comments</h1>
-          </div>
-          <NotificationBell />
-        </div>
-      </nav>
+      <Navbar backNav title="Comments" />
 
-      <main className="mx-auto max-w-2xl px-4 pt-10 text-foreground">
-        <div className="mb-8 rounded-[2.5rem] bg-secondary p-8 shadow-2xl border border-white/10">
+      <main className="mx-auto max-w-2xl px-4 pt-10 text-foreground relative z-10">
+        <div className="mb-8 rounded-[2.5rem] bg-secondary/80 backdrop-blur-xl p-8 shadow-2xl border border-white/10">
           <div className="flex gap-5">
              <Link href={`/profile/${post.username}`} className="h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-primary/30 shadow-lg hover:scale-105 transition-transform">
                 <img src={post.photoURL} className="h-full w-full object-cover" alt="" />
              </Link>
              <div className="flex-1 min-w-0">
-                {/* FIXED: Removed leading-none to stop descender cropping */}
                 <Link href={`/profile/${post.username}`} className="group mb-4 block pb-1">
-                    <p className="text-2xl font-bold text-primary font-lexend leading-tight uppercase group-hover:underline underline-offset-4 decoration-2">{post.displayName}</p>
+                    <p className="text-2xl font-bold text-primary font-lexend leading-tight uppercase group-hover:underline decoration-2">{post.displayName}</p>
                     <p className="text-[10px] opacity-60 uppercase font-bold tracking-[0.2em] mt-2">@{post.username}</p>
                 </Link>
                 <p className="text-2xl leading-relaxed opacity-100 whitespace-pre-wrap font-medium break-words">{post.content}</p>
@@ -177,25 +175,37 @@ export default function PostDetailPage() {
           </div>
         </div>
 
+        {/* INPUT AREA - SOLID COLORS FOR VISIBILITY */}
         <div className="mb-12 px-6">
             <form onSubmit={handleAddComment} className="flex gap-4 items-end">
-                <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Add to the conversation..." className="w-full bg-transparent border-b border-white/10 p-2 text-xl focus:outline-none focus:border-primary transition-all resize-none placeholder:opacity-30 text-foreground" rows={1} />
-                <button type="submit" disabled={isCommenting || !newComment.trim()} className="text-primary font-black uppercase text-sm tracking-widest disabled:opacity-30 hover:scale-105 transition-all p-2">Reply</button>
+                <textarea 
+                    value={newComment} 
+                    onChange={(e) => setNewComment(e.target.value)} 
+                    placeholder="Add to the conversation..." 
+                    className="w-full bg-transparent border-b border-primary/40 p-2 text-xl focus:outline-none focus:border-primary transition-all resize-none placeholder:text-foreground/60 text-foreground font-medium" 
+                    rows={1} 
+                />
+                <button 
+                  type="submit" 
+                  disabled={isCommenting || !newComment.trim()} 
+                  className="text-primary font-black uppercase text-sm tracking-widest hover:scale-105 transition-all p-2 disabled:text-primary/40"
+                >
+                  Reply
+                </button>
             </form>
         </div>
 
         <div className="space-y-6">
           {comments.map((comment) => (
-            <div key={comment.id} className="rounded-[2rem] bg-secondary/50 p-8 border border-white/5 animate-in slide-in-from-right-4 duration-500">
+            <div key={comment.id} className="rounded-[2rem] bg-secondary/60 backdrop-blur-md p-8 border border-white/5 animate-in slide-in-from-right-4 duration-500">
               <div className="flex items-start gap-4">
                 <Link href={`/profile/${comment.username}`} className="h-12 w-12 shrink-0 rounded-full border border-primary/20 overflow-hidden shadow-sm hover:scale-105 transition-transform">
                     <img src={comment.photoURL} className="h-full w-full object-cover" alt="" />
                 </Link>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    {/* FIXED: Removed leading-none to stop descender cropping */}
                     <Link href={`/profile/${comment.username}`} className="group flex items-center gap-3 pb-1">
-                        <span className="font-bold text-primary text-lg font-lexend leading-tight group-hover:underline underline-offset-4 decoration-2">{comment.displayName}</span>
+                        <span className="font-bold text-primary text-lg font-lexend leading-tight group-hover:underline decoration-2">{comment.displayName}</span>
                         <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest">@{comment.username}</span>
                     </Link>
                     {user && comment.uid === user.uid && (
