@@ -7,7 +7,7 @@ import { collection, query, where, getDocs, orderBy, onSnapshot, doc, updateDoc,
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { createNotification } from "@/lib/notificationUtils";
-import Navbar from "@/components/Navbar"; // IMPORT COMPONENT
+import Navbar from "@/components/Navbar";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -37,21 +37,33 @@ export default function ProfilePage() {
       try {
         const q = query(collection(db, "users"), where("username", "==", username.toLowerCase()));
         const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) { setProfileUser(null); setLoading(false); }
-        else {
-          const uData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+        if (querySnapshot.empty) { 
+          setProfileUser(null); 
+          setLoading(false); 
+        } else {
+          // FIXED: Added 'any' type to uData to satisfy the TypeScript compiler during Vercel build
+          const uData: any = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
           setProfileUser(uData);
           setLoading(false);
-          if (user && uData.followers?.includes(user.uid)) setIsFollowing(true);
+          
+          if (user && uData.followers?.includes(user.uid)) {
+            setIsFollowing(true);
+          }
+
           const postsQuery = query(collection(db, "posts"), where("uid", "==", uData.uid), orderBy("createdAt", "desc"));
           const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
             const userPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setPosts(userPosts);
             setPostsLoading(false);
-          }, (error) => { if (error.code !== "permission-denied") console.error(error); });
+          }, (error) => {
+            if (error.code !== "permission-denied") console.error(error);
+          });
           return () => unsubscribe();
         }
-      } catch (error) { console.error(error); setLoading(false); }
+      } catch (error) { 
+        console.error(error); 
+        setLoading(false); 
+      }
     };
     if (username) fetchProfile();
   }, [username, user]);
@@ -80,7 +92,8 @@ export default function ProfilePage() {
 
   const handleStartMessage = () => {
     if (!user || !profileUser) return;
-    const chatid = [user.uid, profileUser.id].sort().join("_");
+    const uids = [user.uid, profileUser.id].sort();
+    const chatid = uids.join("_");
     router.push(`/messages/${chatid}`);
   };
 
@@ -94,7 +107,12 @@ export default function ProfilePage() {
   };
 
   if (loading || authLoading) return <div className="min-h-screen bg-transparent" />;
-  if (!profileUser) return <div className="flex min-h-screen flex-col items-center justify-center bg-transparent p-6 text-center font-lexend"><h1 className="text-3xl md:text-4xl font-black text-primary mb-4 uppercase">Not Found</h1><Link href="/feed" className="text-xs font-bold uppercase tracking-widest text-primary">Return to Vault</Link></div>;
+  if (!profileUser) return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-transparent text-foreground p-6 text-center font-lexend">
+      <h1 className="text-3xl md:text-4xl font-black text-primary mb-4 uppercase">Not Found</h1>
+      <Link href="/feed" className="text-xs font-bold uppercase tracking-widest text-primary">Return to Vault</Link>
+    </div>
+  );
 
   const isMyProfile = user?.uid === profileUser.id;
 
@@ -108,7 +126,7 @@ export default function ProfilePage() {
             <Link href="/settings" className="absolute top-6 right-6 md:top-8 md:right-8 text-[8px] md:text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 border border-primary/20 px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl hover:bg-primary/10 transition-all">Edit</Link>
           )}
           <div className="h-24 w-24 md:h-32 md:w-32 overflow-hidden rounded-full border-4 border-primary/50 shadow-2xl mb-4 md:mb-6 ring-4 ring-primary/10">
-            {profileUser.photoURL ? (<img src={profileUser.photoURL} alt="" className="h-full w-full object-cover" />) : (<div className="flex h-full w-full items-center justify-center bg-background text-4xl opacity-20">👤</div>)}
+            {profileUser.photoURL ? (<img src={profileUser.photoURL} alt="" className="h-full w-full object-cover" />) : (<div className="flex h-full w-full items-center justify-center bg-background text-4xl md:text-5xl opacity-20">👤</div>)}
           </div>
           <h2 className="text-2xl md:text-4xl font-bold font-lexend text-primary mb-1 uppercase tracking-tight">{profileUser.displayName}</h2>
           <p className="text-[10px] md:text-[12px] font-bold opacity-60 uppercase tracking-[0.4em] mb-4">@{profileUser.username}</p>
@@ -121,6 +139,7 @@ export default function ProfilePage() {
                  </>
               )}
           </div>
+          
           <div className="flex gap-6 md:gap-12 border-t border-white/5 pt-6 md:pt-8 w-full justify-center">
             <div className="flex flex-col"><span className="text-xl md:text-3xl font-black text-primary leading-none">{posts.length}</span><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest opacity-60 mt-1">Posts</span></div>
             <div className="flex flex-col"><span className="text-xl md:text-3xl font-black text-primary leading-none">{profileUser.followers?.length || 0}</span><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest opacity-60 mt-1">Followers</span></div>
@@ -137,17 +156,23 @@ export default function ProfilePage() {
           <div className={viewMode === "list" ? "space-y-6 md:space-y-10" : "grid grid-cols-3 gap-1 md:gap-4 animate-in zoom-in duration-500"}>
             {posts.map((post) => (
                 viewMode === "list" ? (
-                    <div key={post.id} className="rounded-[1.5rem] md:rounded-[2.5rem] bg-secondary/80 p-5 md:p-8 shadow-xl border border-white/5 backdrop-blur-xl">
+                    <div key={post.id} className="rounded-[1.5rem] md:rounded-[2.5rem] bg-secondary/80 backdrop-blur-xl p-5 md:p-8 shadow-xl border border-white/5 animate-in fade-in slide-in-from-bottom-8">
                       <div className="flex gap-4 md:gap-5">
                           <div className="h-10 w-10 md:h-14 md:w-14 shrink-0 overflow-hidden rounded-full border-2 border-primary/30 shadow-md">
                              {profileUser.photoURL ? (<img src={profileUser.photoURL} alt="" className="h-full w-full object-cover" />) : (<div className="flex h-full w-full items-center justify-center bg-background text-sm">👤</div>)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-base md:text-2xl leading-tight opacity-100 whitespace-pre-wrap font-medium break-words pb-1">{post.content}</p>
-                            {post.postImage && (<div className="mt-4 md:mt-6 rounded-2xl md:rounded-3xl overflow-hidden border border-white/5 shadow-2xl"><img src={post.postImage} alt="" className="w-full object-cover" /></div>)}
+                            {post.postImage && (<div className="mt-4 md:mt-6 rounded-2xl md:rounded-3xl overflow-hidden border border-white/5 shadow-2xl"><img src={post.postImage} alt="" className="w-full max-h-[400px] md:max-h-[500px] object-cover" /></div>)}
                             <div className="mt-6 md:mt-8 flex items-center gap-4 md:gap-6 border-t border-white/5 pt-6 md:pt-8">
-                              <button onClick={() => handleLike(post.id, post.likes || [])} className="flex items-center gap-2 text-sm font-black transition-all hover:scale-110 active:scale-95 text-primary group"><span className="text-2xl md:text-3xl group-hover:brightness-125">{user && post.likes?.includes(user.uid) ? "✨" : "⭐"}</span><span className="opacity-100">{post.likes?.length || 0}</span></button>
-                              <Link href={`/post/${post.id}`} className="flex items-center gap-2 text-sm font-black text-primary transition-all group hover:scale-110"><span className="text-2xl md:text-3xl group-hover:brightness-125 transition-transform">💬</span><span className="opacity-100">{post.commentCount || 0} <span className="hidden md:inline">Comments</span></span></Link>
+                              <button onClick={() => handleLike(post.id, post.likes || [])} className="flex items-center gap-2 text-[10px] md:text-sm font-black transition-all hover:scale-110 active:scale-95 text-primary group">
+                                <span className="text-2xl md:text-3xl group-hover:brightness-125">{user && post.likes?.includes(user.uid) ? "✨" : "⭐"}</span>
+                                <span className="opacity-100">{post.likes?.length || 0}</span>
+                              </button>
+                              <Link href={`/post/${post.id}`} className="flex items-center gap-2 text-[10px] md:text-sm font-black text-primary transition-all group hover:scale-110">
+                                <span className="text-2xl md:text-3xl group-hover:brightness-125 transition-transform">💬</span>
+                                <span className="opacity-100">{post.commentCount || 0} <span className="hidden md:inline">Comments</span></span>
+                              </Link>
                             </div>
                           </div>
                       </div>
