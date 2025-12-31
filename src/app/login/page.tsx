@@ -28,19 +28,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+    /* FIXED: Removed min-h-screen to stop long-page scroll. Added precise top padding. */
+    <div className="relative flex flex-col items-center px-4 pt-10 md:pt-24">
       <div className="relative z-10 w-full max-w-md rounded-[2.5rem] bg-secondary/80 backdrop-blur-2xl p-8 md:p-14 shadow-2xl border border-white/10 animate-in zoom-in duration-500">
         <div className="text-center mb-10">
+            {/* FIXED: No space in SocialGold */}
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-primary font-lexend uppercase mb-2">
-                Social Gold
+                Social<span className="text-foreground">Gold</span>
             </h1>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-foreground/60">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">
                 The Vault Awaits
             </p>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-2xl bg-red-500/10 border border-red-500 p-4 text-center text-sm font-black text-red-500 uppercase tracking-widest">
+          <div className="mb-6 rounded-2xl bg-red-500/10 border border-red-500 p-4 text-center text-[10px] font-black text-red-500 uppercase tracking-widest">
             {error}
           </div>
         )}
@@ -87,7 +89,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-10 text-center text-[10px] font-black uppercase tracking-widest text-foreground/40">
-          Not a member yet?{" "}
+          Not a member?{" "}
           <Link href="/signup" className="text-primary hover:underline underline-offset-8 transition-all">
             Apply for Access
           </Link>

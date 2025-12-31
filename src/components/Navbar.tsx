@@ -24,7 +24,6 @@ export default function Navbar({ backNav = false, title }: NavbarProps) {
       const unsubscribe = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) setUserData(docSnap.data());
       }, (error) => {
-        // Silently catch permission errors during logout
         if (error.code !== "permission-denied") console.error(error);
       });
       return () => unsubscribe();
@@ -41,9 +40,9 @@ export default function Navbar({ backNav = false, title }: NavbarProps) {
               {title && <h1 className="text-xl md:text-2xl font-black font-lexend uppercase tracking-tighter">{title}</h1>}
             </>
           ) : (
-            <Link href="/" className="text-2xl md:text-4xl font-black tracking-tighter font-lexend uppercase flex items-center gap-2">
-              <span className="text-foreground">Social</span>
-              <span className="text-primary">Gold</span>
+            /* FIXED: SocialGold spacing removed */
+            <Link href="/" className="text-2xl md:text-4xl font-black tracking-tighter font-lexend uppercase flex items-center">
+              <span className="text-foreground">Social</span><span className="text-primary">Gold</span>
             </Link>
           )}
         </div>

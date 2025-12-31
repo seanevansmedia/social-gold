@@ -28,6 +28,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12 text-center">
       <div className="max-w-3xl w-full animate-in fade-in zoom-in duration-1000">
+        {/* FIXED: Space removed between Social and Gold */}
         <h1 className="mb-4 text-7xl md:text-9xl font-black tracking-tighter leading-none font-lexend uppercase">
           <span 
             style={{ 
@@ -38,7 +39,7 @@ export default function Home() {
           >
             Social
           </span>
-          <br />
+          <br className="md:hidden" />
           <span className="text-foreground">Gold</span>
         </h1>
         

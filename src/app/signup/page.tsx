@@ -28,13 +28,15 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+    /* FIXED: Items sat higher with top padding, no min-h-screen to prevent footer push */
+    <div className="relative flex flex-col items-center px-4 pt-10 md:pt-24">
       <div className="relative z-10 w-full max-w-md rounded-[2.5rem] bg-secondary/80 backdrop-blur-2xl p-8 md:p-14 shadow-2xl border border-white/10 animate-in slide-in-from-bottom-10 duration-700">
         <div className="text-center mb-10">
+            {/* FIXED: No space in JoinGold */}
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-primary font-lexend uppercase mb-2">
-                Join Gold
+                Join<span className="text-foreground">Gold</span>
             </h1>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-foreground/60">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">
                 Begin Your Legacy
             </p>
         </div>
