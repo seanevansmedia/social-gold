@@ -23,10 +23,8 @@ export default function NotificationBell() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // FIXED: Added 'as any' to map
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setNotifications(data);
-      // FIXED: Explicitly typed 'n' as any
       setUnreadCount(data.filter((n: any) => !n.read).length);
     }, (error) => {
       if (error.code !== "permission-denied") console.error(error);
@@ -78,7 +76,8 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-4 w-80 max-h-[450px] overflow-y-auto bg-secondary border border-white/20 rounded-[2rem] shadow-2xl z-[100] animate-in zoom-in duration-200">
+        /* FIXED: Added gold-scrollbar class */
+        <div className="absolute right-0 mt-4 w-80 max-h-[450px] overflow-y-auto gold-scrollbar bg-secondary border border-white/20 rounded-[2rem] shadow-2xl z-[100] animate-in zoom-in duration-200">
           <div className="p-6 border-b border-white/10">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Notifications</h3>
           </div>

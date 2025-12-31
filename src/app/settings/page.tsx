@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { compressImage } from "@/lib/imageUtils";
 import Link from "next/link";
-import NotificationBell from "@/components/NotificationBell";
+import Navbar from "@/components/Navbar";
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -59,10 +59,15 @@ export default function SettingsPage() {
     setMessage("");
 
     try {
+      let formattedWebsite = website.trim();
+      if (formattedWebsite && !formattedWebsite.startsWith('http')) {
+        formattedWebsite = `https://${formattedWebsite}`;
+      }
+
       await updateDoc(doc(db, "users", user.uid), {
         displayName: displayName.trim(),
         bio: bio.trim(),
-        website: website.trim(),
+        website: formattedWebsite,
         photoURL: photoURL,
       });
       setMessage("Profile updated successfully!");
@@ -74,33 +79,15 @@ export default function SettingsPage() {
     }
   };
 
-  if (authLoading) return <div className="min-h-screen bg-background" />;
+  if (authLoading) return null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-jakarta pb-20">
-      <nav className="sticky top-0 z-40 w-full border-b border-white/10 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/feed" className="text-primary text-3xl hover:scale-110 transition-transform">←</Link>
-            <h1 className="text-2xl font-black font-lexend uppercase tracking-tighter">Settings</h1>
-          </div>
-          <div className="flex items-center gap-6">
-            <NotificationBell />
-            {username && (
-              <Link 
-                href={`/profile/${username}`}
-                className="text-[10px] font-black uppercase tracking-widest text-primary border-2 border-primary/20 px-4 py-2 rounded-xl hover:bg-primary/10 transition-all"
-              >
-                My Profile
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen text-foreground font-jakarta pb-20">
+      <Navbar backNav title="Settings" isProfile={true} />
 
-      <main className="mx-auto max-w-xl px-6 pt-10">
+      <main className="mx-auto max-w-xl px-6 pt-10 relative z-10">
         <form onSubmit={handleSave} className="space-y-8">
-          <div className="flex flex-col items-center gap-6 p-8 rounded-[2.5rem] bg-secondary border border-white/10 shadow-2xl">
+          <div className="flex flex-col items-center gap-6 p-8 rounded-[2.5rem] bg-secondary/80 backdrop-blur-xl border border-white/10 shadow-2xl">
             <div className="relative h-32 w-32 overflow-hidden rounded-full border-4 border-primary shadow-lg">
               {photoURL ? (
                 <img src={photoURL} alt="Avatar" className="h-full w-full object-cover" />
@@ -121,7 +108,7 @@ export default function SettingsPage() {
                 type="text" 
                 value={displayName} 
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full bg-secondary border-2 border-white/5 rounded-[1.5rem] p-5 focus:border-primary focus:ring-0 transition-all text-lg font-medium text-foreground"
+                className="w-full bg-secondary border-none rounded-[1.5rem] p-5 focus:ring-2 focus:ring-primary transition-all text-lg font-medium text-foreground"
               />
             </div>
 
@@ -131,18 +118,18 @@ export default function SettingsPage() {
                 value={bio} 
                 onChange={(e) => setBio(e.target.value)}
                 rows={3}
-                className="w-full bg-secondary border-2 border-white/5 rounded-[1.5rem] p-5 focus:border-primary focus:ring-0 transition-all text-lg font-medium text-foreground resize-none"
+                className="w-full bg-secondary border-none rounded-[1.5rem] p-5 focus:ring-2 focus:ring-primary transition-all text-lg font-medium text-foreground resize-none"
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-2">Website</label>
               <input 
-                type="url" 
+                type="text" 
                 value={website} 
                 onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://"
-                className="w-full bg-secondary border-2 border-white/5 rounded-[1.5rem] p-5 focus:border-primary focus:ring-0 transition-all text-lg font-medium text-foreground"
+                placeholder="e.g. yoursite.com"
+                className="w-full bg-secondary border-none rounded-[1.5rem] p-5 focus:ring-2 focus:ring-primary transition-all text-lg font-medium text-foreground"
               />
             </div>
           </div>
@@ -157,7 +144,7 @@ export default function SettingsPage() {
             style={{ background: "linear-gradient(to right, var(--gradient-from), var(--gradient-to))" }}
             className="w-full rounded-[1.5rem] py-6 text-base font-black text-primary-foreground uppercase tracking-[0.2em] shadow-xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
           >
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving ? "Updating Vault..." : "Save Changes"}
           </button>
         </form>
       </main>

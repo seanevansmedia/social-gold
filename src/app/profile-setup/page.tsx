@@ -13,7 +13,7 @@ export default function ProfileSetup() {
 
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
-  const [website, setWebsite] = useState(""); // NEW FIELD
+  const [website, setWebsite] = useState(""); 
   const [base64Image, setBase64Image] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -43,13 +43,19 @@ export default function ProfileSetup() {
     try {
       if (username.length < 3) throw new Error("Username must be at least 3 characters.");
 
+      // Logic to ensure the website is stored cleanly
+      let formattedWebsite = website.trim();
+      if (formattedWebsite && !formattedWebsite.startsWith('http')) {
+        formattedWebsite = `https://${formattedWebsite}`;
+      }
+
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: user.email,
         username: username.toLowerCase().trim(),
         displayName: username.trim(),
         bio: bio.trim(),
-        website: website.trim(), // SAVE NEW FIELD
+        website: formattedWebsite,
         photoURL: base64Image || "",
         createdAt: new Date().toISOString(),
         setupComplete: true,
@@ -65,20 +71,20 @@ export default function ProfileSetup() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-background" />;
+  if (loading) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
-      <div className="w-full max-w-md rounded-[2.5rem] bg-secondary p-10 md:p-14 shadow-2xl border border-white/5">
+    <div className="relative flex flex-col items-center px-4 pt-10 md:pt-24">
+      <div className="relative z-10 w-full max-w-md rounded-[2.5rem] bg-secondary/80 backdrop-blur-2xl p-8 md:p-14 shadow-2xl border border-white/10 animate-in zoom-in duration-500">
         <h1 className="mb-2 text-center text-4xl font-bold tracking-tight text-primary font-lexend uppercase">
           Profile Setup
         </h1>
-        <p className="mb-10 text-center text-sm font-medium opacity-50 uppercase tracking-widest">
-          Finish creating your gold identity
+        <p className="mb-10 text-center text-sm font-medium text-foreground/50 uppercase tracking-widest">
+          Establish your gold identity
         </p>
 
         {error && (
-          <div className="mb-6 rounded-2xl bg-red-500/10 border border-red-500/50 p-4 text-center text-sm font-bold text-red-500 uppercase">
+          <div className="mb-6 rounded-2xl bg-red-500/10 border border-red-500/50 p-4 text-center text-sm font-black text-red-500 uppercase">
             {error}
           </div>
         )}
@@ -99,36 +105,36 @@ export default function ProfileSetup() {
           </div>
 
           <div className="space-y-2">
-            <label className="ml-1 block text-xs font-black uppercase tracking-widest opacity-40">Username</label>
+            <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-primary">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ""))}
               placeholder="gold_member"
-              className="w-full rounded-2xl border-none bg-background p-4 text-base shadow-inner ring-1 ring-white/10 focus:ring-2 focus:ring-primary text-foreground transition-all"
+              className="w-full rounded-2xl border-none bg-background/50 p-4 text-base focus:ring-2 focus:ring-primary text-foreground transition-all"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="ml-1 block text-xs font-black uppercase tracking-widest opacity-40">Bio</label>
+            <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-primary">Bio</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Something gold about you..."
               rows={2}
-              className="w-full rounded-2xl border-none bg-background p-4 text-base shadow-inner ring-1 ring-white/10 focus:ring-2 focus:ring-primary text-foreground transition-all resize-none"
+              className="w-full rounded-2xl border-none bg-background/50 p-4 text-base focus:ring-2 focus:ring-primary text-foreground transition-all resize-none"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="ml-1 block text-xs font-black uppercase tracking-widest opacity-40">Website / Link</label>
+            <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-primary">Website / Social Link</label>
             <input
-              type="url"
+              type="text" // CHANGED FROM URL TO TEXT
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://yourlink.com"
-              className="w-full rounded-2xl border-none bg-background p-4 text-base shadow-inner ring-1 ring-white/10 focus:ring-2 focus:ring-primary text-foreground transition-all"
+              placeholder="e.g. instagram.com/yours"
+              className="w-full rounded-2xl border-none bg-background/50 p-4 text-base focus:ring-2 focus:ring-primary text-foreground transition-all"
             />
           </div>
 
@@ -136,7 +142,7 @@ export default function ProfileSetup() {
             type="submit"
             disabled={isSubmitting}
             style={{ background: "linear-gradient(to right, var(--gradient-from), var(--gradient-to))" }}
-            className={`w-full rounded-2xl py-4 text-base font-black text-primary-foreground shadow-lg transition-all active:scale-95 uppercase tracking-widest ${
+            className={`w-full rounded-2xl py-5 text-sm font-black text-primary-foreground shadow-lg transition-all active:scale-95 uppercase tracking-widest ${
               isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:brightness-110"
             }`}
           >

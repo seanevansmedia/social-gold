@@ -45,6 +45,8 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const MAX_CHARS = 500; // CHARACTER LIMIT
   
   const observer = useRef<IntersectionObserver | null>(null);
   const lastPostElementRef = useCallback((node: HTMLDivElement) => {
@@ -89,7 +91,6 @@ export default function FeedPage() {
       if (isLoadMore && lastDoc) constraints.push(startAfter(lastDoc));
       const q = query(baseQuery, ...constraints);
       const snapshot = await getDocs(q);
-      // FIXED: Added 'as any'
       const newPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       if (isLoadMore) setPosts(prev => [...prev, ...newPosts]);
       else setPosts(newPosts);
@@ -154,7 +155,7 @@ export default function FeedPage() {
   if (authLoading) return null;
 
   return (
-    <div className="min-h-screen text-foreground font-jakarta pb-20">
+    <div className="text-foreground font-jakarta">
       {alert.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-[2.5rem] bg-secondary p-8 shadow-2xl border border-white/10 text-center animate-in zoom-in duration-300">
@@ -182,17 +183,32 @@ export default function FeedPage() {
 
       <main className="mx-auto max-w-2xl px-4 py-6 md:py-10 relative z-10">
         <div className="mb-8 md:mb-12 rounded-[2rem] md:rounded-[2.5rem] bg-secondary/80 p-5 md:p-8 shadow-2xl border border-white/5 backdrop-blur-xl">
-          <div className="flex gap-4 md:gap-5 mb-4">
+          <div className="flex gap-4 md:gap-5 mb-2">
             <div className="h-10 w-10 md:h-14 md:w-14 shrink-0 overflow-hidden rounded-full bg-background border border-primary/20">
-              {userData?.photoURL ? (<img src={userData.photoURL} alt="" className="h-full w-full object-cover" />) : (<div className="flex h-full w-full items-center justify-center opacity-20 text-xl">👤</div>)}
+              {userData?.photoURL ? (<img src={userData.photoURL} alt="" className="h-full w-full object-cover" />) : (<div className="flex h-full w-full items-center justify-center bg-background text-sm opacity-20">👤</div>)}
             </div>
             <form onSubmit={handleCreatePost} className="w-full">
-              <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What is happening?" className="w-full resize-none border-none bg-transparent p-1 md:p-2 text-lg md:text-xl focus:outline-none focus:ring-0 placeholder:text-foreground/30 text-foreground font-medium" rows={3} />
+              <textarea 
+                value={newPost} 
+                onChange={(e) => setNewPost(e.target.value)} 
+                maxLength={MAX_CHARS} // NATIVE LIMIT
+                placeholder="What is happening?" 
+                className="w-full resize-none border-none bg-transparent p-1 md:p-2 text-lg md:text-xl focus:outline-none focus:ring-0 placeholder:text-foreground/30 text-foreground font-medium gold-scrollbar" 
+                rows={3} 
+              />
               {postImage && (
                 <div className="relative mt-4 mb-4 rounded-2xl md:rounded-3xl overflow-hidden border-2 border-primary/20"><img src={postImage} alt="" className="w-full max-h-60 md:max-h-80 object-cover" /><button onClick={() => setPostImage(null)} className="absolute top-2 right-2 md:top-4 md:right-4 bg-black/50 text-white h-8 w-8 md:h-10 md:w-10 rounded-full font-bold hover:bg-black transition-all">✕</button></div>
               )}
             </form>
           </div>
+
+          {/* CHARACTER COUNTER */}
+          <div className="flex justify-end pr-2 pb-2">
+            <span className={`text-[10px] font-black uppercase tracking-widest ${newPost.length >= MAX_CHARS ? 'text-red-500' : 'text-primary'}`}>
+                {newPost.length} / {MAX_CHARS}
+            </span>
+          </div>
+
           <div className="flex items-center justify-between border-t border-white/5 pt-5 md:pt-6 gap-3 md:gap-4">
             <label className="flex-1 cursor-pointer flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 shadow-md">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>

@@ -32,11 +32,31 @@
   }
 }
 
-/* REFINED: High-Quality Micro-Grain Texture */
-.bg-grain {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  mix-blend-mode: soft-light;
-  opacity: 0.15;
+/* CUSTOM GOLD SCROLLBAR UTILITY */
+@layer utilities {
+  .gold-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--background);
+  }
+
+  .gold-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .gold-scrollbar::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 10px;
+  }
+
+  .gold-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+    border: 1px solid var(--background);
+  }
+
+  .gold-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
 }
 
 body {

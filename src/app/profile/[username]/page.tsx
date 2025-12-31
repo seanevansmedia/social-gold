@@ -37,33 +37,21 @@ export default function ProfilePage() {
       try {
         const q = query(collection(db, "users"), where("username", "==", username.toLowerCase()));
         const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) { 
-          setProfileUser(null); 
-          setLoading(false); 
-        } else {
-          // FIXED: Added 'any' type to uData to satisfy the TypeScript compiler during Vercel build
+        if (querySnapshot.empty) { setProfileUser(null); setLoading(false); }
+        else {
           const uData: any = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
           setProfileUser(uData);
           setLoading(false);
-          
-          if (user && uData.followers?.includes(user.uid)) {
-            setIsFollowing(true);
-          }
-
+          if (user && uData.followers?.includes(user.uid)) setIsFollowing(true);
           const postsQuery = query(collection(db, "posts"), where("uid", "==", uData.uid), orderBy("createdAt", "desc"));
           const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
             const userPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setPosts(userPosts);
             setPostsLoading(false);
-          }, (error) => {
-            if (error.code !== "permission-denied") console.error(error);
-          });
+          }, (error) => { if (error.code !== "permission-denied") console.error(error); });
           return () => unsubscribe();
         }
-      } catch (error) { 
-        console.error(error); 
-        setLoading(false); 
-      }
+      } catch (error) { console.error(error); setLoading(false); }
     };
     if (username) fetchProfile();
   }, [username, user]);
@@ -107,18 +95,13 @@ export default function ProfilePage() {
   };
 
   if (loading || authLoading) return <div className="min-h-screen bg-transparent" />;
-  if (!profileUser) return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-transparent text-foreground p-6 text-center font-lexend">
-      <h1 className="text-3xl md:text-4xl font-black text-primary mb-4 uppercase">Not Found</h1>
-      <Link href="/feed" className="text-xs font-bold uppercase tracking-widest text-primary">Return to Vault</Link>
-    </div>
-  );
+  if (!profileUser) return <div className="flex min-h-screen flex-col items-center justify-center bg-transparent text-foreground p-6 text-center font-lexend"><h1 className="text-3xl md:text-4xl font-black text-primary mb-4 uppercase">Not Found</h1><Link href="/feed" className="text-xs font-bold uppercase tracking-widest text-primary">Return to Vault</Link></div>;
 
   const isMyProfile = user?.uid === profileUser.id;
 
   return (
     <div className="min-h-screen bg-transparent text-foreground font-jakarta pb-20">
-      <Navbar />
+      <Navbar isProfile={true} />
 
       <main className="mx-auto max-w-2xl px-4 pt-6 md:pt-10 text-foreground relative z-10">
         <div className="mb-8 md:mb-12 rounded-[2rem] md:rounded-[2.5rem] bg-secondary/80 backdrop-blur-xl p-6 md:p-10 shadow-2xl border border-white/5 text-center flex flex-col items-center relative">
@@ -165,14 +148,8 @@ export default function ProfilePage() {
                             <p className="text-base md:text-2xl leading-tight opacity-100 whitespace-pre-wrap font-medium break-words pb-1">{post.content}</p>
                             {post.postImage && (<div className="mt-4 md:mt-6 rounded-2xl md:rounded-3xl overflow-hidden border border-white/5 shadow-2xl"><img src={post.postImage} alt="" className="w-full max-h-[400px] md:max-h-[500px] object-cover" /></div>)}
                             <div className="mt-6 md:mt-8 flex items-center gap-4 md:gap-6 border-t border-white/5 pt-6 md:pt-8">
-                              <button onClick={() => handleLike(post.id, post.likes || [])} className="flex items-center gap-2 text-[10px] md:text-sm font-black transition-all hover:scale-110 active:scale-95 text-primary group">
-                                <span className="text-2xl md:text-3xl group-hover:brightness-125">{user && post.likes?.includes(user.uid) ? "✨" : "⭐"}</span>
-                                <span className="opacity-100">{post.likes?.length || 0}</span>
-                              </button>
-                              <Link href={`/post/${post.id}`} className="flex items-center gap-2 text-[10px] md:text-sm font-black text-primary transition-all group hover:scale-110">
-                                <span className="text-2xl md:text-3xl group-hover:brightness-125 transition-transform">💬</span>
-                                <span className="opacity-100">{post.commentCount || 0} <span className="hidden md:inline">Comments</span></span>
-                              </Link>
+                              <button onClick={() => handleLike(post.id, post.likes || [])} className="flex items-center gap-2 text-[10px] md:text-sm font-black transition-all hover:scale-110 active:scale-95 text-primary group"><span className="text-2xl md:text-3xl group-hover:brightness-125">{user && post.likes?.includes(user.uid) ? "✨" : "⭐"}</span><span className="opacity-100">{post.likes?.length || 0}</span></button>
+                              <Link href={`/post/${post.id}`} className="flex items-center gap-2 text-[10px] md:text-sm font-black text-primary transition-all group hover:scale-110"><span className="text-2xl md:text-3xl group-hover:brightness-125 transition-transform">💬</span><span className="opacity-100">{post.commentCount || 0} <span className="hidden md:inline">Comments</span></span></Link>
                             </div>
                           </div>
                       </div>
