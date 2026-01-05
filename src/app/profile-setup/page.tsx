@@ -20,7 +20,12 @@ export default function ProfileSetup() {
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
-  }, [user, loading, router]);
+    
+    // NEW: If user has a Google photo, set it as default!
+    if (user?.photoURL && !base64Image) {
+        setBase64Image(user.photoURL);
+    }
+  }, [user, loading, router]); // Added base64Image dependency implicitly via logic
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,7 +48,6 @@ export default function ProfileSetup() {
     try {
       if (username.length < 3) throw new Error("Username must be at least 3 characters.");
 
-      // Logic to ensure the website is stored cleanly
       let formattedWebsite = website.trim();
       if (formattedWebsite && !formattedWebsite.startsWith('http')) {
         formattedWebsite = `https://${formattedWebsite}`;
@@ -56,6 +60,7 @@ export default function ProfileSetup() {
         displayName: username.trim(),
         bio: bio.trim(),
         website: formattedWebsite,
+        // Use the base64Image (which might be the Google URL now)
         photoURL: base64Image || "",
         createdAt: new Date().toISOString(),
         setupComplete: true,
@@ -99,7 +104,7 @@ export default function ProfileSetup() {
               )}
             </div>
             <label className="cursor-pointer text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-6 py-2 rounded-full border border-primary/20">
-              Upload Photo
+              {base64Image ? "Change Photo" : "Upload Photo"}
               <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
             </label>
           </div>
@@ -130,7 +135,7 @@ export default function ProfileSetup() {
           <div className="space-y-2">
             <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-primary">Website / Social Link</label>
             <input
-              type="text" // CHANGED FROM URL TO TEXT
+              type="text"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="e.g. instagram.com/yours"

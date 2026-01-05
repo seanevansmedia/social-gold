@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth, db } from "@/lib/firebase"; // Added db import
+import { doc, getDoc } from "firebase/firestore"; // Added firestore imports
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { FcGoogle } from "react-icons/fc"; 
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,12 +15,42 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const handleGoogleLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // CRITICAL STEP: Check if this user already has a profile in your DB
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        // User exists -> Go to Feed
+        router.push("/");
+      } else {
+        // User is new -> Go to Profile Setup (Your existing onboarding page)
+        router.push("/profile-setup");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError("Google authentication failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      // For email login, we assume they might be returning, 
+      // but checking profile setup is technically safer. 
+      // For now, keeping your original flow:
       router.push("/");
     } catch (err: any) {
       setError("Failed to login. Please check your details.");
@@ -28,11 +60,9 @@ export default function LoginPage() {
   };
 
   return (
-    /* FIXED: Removed min-h-screen to stop long-page scroll. Added precise top padding. */
     <div className="relative flex flex-col items-center px-4 pt-10 md:pt-24">
       <div className="relative z-10 w-full max-w-md rounded-[2.5rem] bg-secondary/80 backdrop-blur-2xl p-8 md:p-14 shadow-2xl border border-white/10 animate-in zoom-in duration-500">
         <div className="text-center mb-10">
-            {/* FIXED: No space in SocialGold */}
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-primary font-lexend uppercase mb-2">
                 Social<span className="text-foreground">Gold</span>
             </h1>
@@ -87,6 +117,26 @@ export default function LoginPage() {
             {loading ? "Verifying..." : "Enter the Vault"}
           </button>
         </form>
+
+        {/* OR Divider */}
+        <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-white/10"></span>
+            </div>
+            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
+                <span className="bg-transparent px-2 text-foreground/40 backdrop-blur-xl">Or Access With</span>
+            </div>
+        </div>
+
+        {/* Google Button */}
+        <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full bg-white text-black rounded-2xl py-4 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+        >
+            <FcGoogle className="text-2xl" />
+            <span className="text-sm font-bold tracking-wider">Google</span>
+        </button>
 
         <p className="mt-10 text-center text-[10px] font-black uppercase tracking-widest text-foreground/40">
           Not a member?{" "}
