@@ -10,7 +10,8 @@ export default function Footer() {
           
           {/* Brand Side */}
           <div>
-            <Link href="/" className="text-2xl font-black tracking-tighter font-lexend uppercase flex items-center justify-center md:justify-start gap-2">
+            {/* FIXED: Removed 'gap-2' so Social and Gold are connected */}
+            <Link href="/" className="text-2xl font-black tracking-tighter font-lexend uppercase flex items-center justify-center md:justify-start">
               <span className="text-foreground">Social</span>
               <span className="text-primary">Gold</span>
             </Link>
@@ -23,7 +24,6 @@ export default function Footer() {
           <div className="flex gap-8">
             <Link href="/feed" className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground hover:text-primary transition-all">Feed</Link>
             <Link href="/search" className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground hover:text-primary transition-all">Search</Link>
-            {/* FIXED LINK */}
             <Link href="/privacy" className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground hover:text-primary transition-all">Privacy</Link>
           </div>
         </div>

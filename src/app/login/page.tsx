@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth, db } from "@/lib/firebase"; // Added db import
-import { doc, getDoc } from "firebase/firestore"; // Added firestore imports
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FcGoogle } from "react-icons/fc"; 
+import { FcGoogle } from "react-icons/fc";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,22 +23,23 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // CRITICAL STEP: Check if this user already has a profile in your DB
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
-        // User exists -> Go to Feed
         router.push("/");
       } else {
-        // User is new -> Go to Profile Setup (Your existing onboarding page)
         router.push("/profile-setup");
       }
     } catch (err: any) {
+      if (err.code === "auth/popup-closed-by-user") {
+        setLoading(false);
+        return;
+      }
       console.error(err);
       setError("Google authentication failed. Please try again.");
     } finally {
-      setLoading(false);
+      if (error) setLoading(false); 
     }
   };
 
@@ -48,13 +49,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // For email login, we assume they might be returning, 
-      // but checking profile setup is technically safer. 
-      // For now, keeping your original flow:
       router.push("/");
     } catch (err: any) {
+      console.error(err);
       setError("Failed to login. Please check your details.");
-    } finally {
       setLoading(false);
     }
   };
@@ -118,7 +116,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* OR Divider */}
         <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-white/10"></span>
@@ -128,14 +125,14 @@ export default function LoginPage() {
             </div>
         </div>
 
-        {/* Google Button */}
         <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full bg-white text-black rounded-2xl py-4 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+            className="w-full bg-white text-black rounded-2xl py-5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
         >
             <FcGoogle className="text-2xl" />
-            <span className="text-sm font-bold tracking-wider">Google</span>
+            {/* CLEANED UP FONT */}
+            <span className="text-base font-bold">Sign in with Google</span>
         </button>
 
         <p className="mt-10 text-center text-[10px] font-black uppercase tracking-widest text-foreground/40">
